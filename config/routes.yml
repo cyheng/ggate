@@ -1,6 +1,3 @@
-globalFilters:
-  #- Cors=allowOrigin:localhost
-  #  - KuipAuth=optional
 routes:
   - id: service
     uri: lb://service

@@ -5,8 +5,6 @@ import (
 	"ggate/internal/config"
 	"ggate/internal/route"
 	"ggate/internal/service"
-	"ggate/pkg/requests"
-	"io"
 
 	"net/http"
 	"sync"
@@ -25,11 +23,11 @@ type Proxy struct {
 }
 
 func New(cfg config.ProxyConfig) *Proxy {
-	routes, err := route.GetRoutesBy(cfg.RoutesReaderType, cfg.RoutesReaderArg)
+	routes, err := route.GetRoutesBy(cfg.RoutesFile)
 	if err != nil {
 		logrus.Panic(err)
 	}
-	services, err := service.GetAllServicesBy(cfg.ServicesReaderType, cfg.ServicesReaderArg)
+	services, err := service.GetAllServicesBy(cfg.ServicesFile)
 	if err != nil {
 		logrus.Panic(err)
 	}
@@ -68,21 +66,11 @@ func (p *Proxy) Run() {
 }
 
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	result := requests.Request("http://www.douban.com", "GET", p.client).
-		Headers(r.Header).
-		Send()
-
-	resp := result.Resp
-	for name, values := range resp.Header {
-		w.Header()[name] = values
-	}
-	w.WriteHeader(resp.StatusCode)
-	_, err := io.Copy(w, resp.Body)
-	if err != nil {
-		logrus.Error(err)
-	}
-	defer resp.Body.Close()
-
+	//TODO:实现ServeHTTP方法
+	//for routes
+	//all predicate.Apply(ctx) == true
+	//build filter
+	//ctx.do -> do filter -> redirect
 }
 func (p *Proxy) initHttpClient() *http.Client {
 	maxIdleConns := p.cfg.MaxIdleConns
