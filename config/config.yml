@@ -2,8 +2,8 @@ addr: "127.0.0.1:8000"
 filter_plugin_dir: ""
 predicate_plugin_dir: ""
  
-routes_file: "E:/code/go-vscode/ggate/config/routes.yml"
-services_file: "E:/code/go-vscode/ggate/config/services.yml"
+routes_file: "../config/routes.yml"
+services_file: "../config/services.yml"
 
 max_idle_conns: 40000
 max_idle_conns_per_host: 20000
