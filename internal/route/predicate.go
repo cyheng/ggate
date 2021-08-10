@@ -3,9 +3,14 @@ package route
 import (
 	"errors"
 	"fmt"
+	"ggate/internal/context"
 	"strings"
 )
 
+type Predicate interface {
+	Name() string
+	Apply(ctx *context.Context) bool
+}
 type PredicateDefinition struct {
 	Name string
 	Args map[string]string
@@ -27,4 +32,9 @@ func NewPredicateDefinition(text string) (*PredicateDefinition, error) {
 		result.Args[fmt.Sprint("_genkey_", i)] = v
 	}
 	return result, nil
+}
+
+//TODO :根据Path=/registry/** 转换成对应的Predicate
+func createPredi(text string) (Predicate, error) {
+	return nil, nil
 }

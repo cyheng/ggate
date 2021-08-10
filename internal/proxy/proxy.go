@@ -3,6 +3,7 @@ package proxy
 import (
 	"crypto/tls"
 	"ggate/internal/config"
+	"ggate/internal/context"
 	"ggate/internal/route"
 	"ggate/internal/service"
 
@@ -13,7 +14,7 @@ import (
 )
 
 type Proxy struct {
-	routes         []route.Route
+	routes         []*route.Route
 	services       *map[string]service.Service
 	client         *http.Client
 	defaultFilters []route.Filter
@@ -44,7 +45,7 @@ func New(cfg config.ProxyConfig) *Proxy {
 
 	proxy.client = proxy.initHttpClient()
 	proxy.pool.New = func() interface{} {
-		return &Context{}
+		return &context.Context{}
 	}
 
 	return proxy
@@ -66,8 +67,27 @@ func (p *Proxy) Run() {
 }
 
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//TODO:实现ServeHTTP方法
-	//for routes
+	ctx := p.pool.Get().(*context.Context)
+	ctx.Request = r
+	ctx.ResponseWriter = w
+	oneMatch := false
+	for _, route := range p.routes {
+		match := true
+		for _, pre := range route.Predicates {
+			match = match && pre.Apply(ctx)
+		}
+		if !match {
+			continue
+		}
+		oneMatch = true
+		ctx.Handle()
+	}
+	if !oneMatch {
+		p.handleNotMatch()
+	}
+	ctx.Reset()
+	p.pool.Put(ctx)
+
 	//all predicate.Apply(ctx) == true
 	//build filter
 	//ctx.do -> do filter -> redirect
@@ -83,4 +103,8 @@ func (p *Proxy) initHttpClient() *http.Client {
 	return &http.Client{
 		Transport: pTransPort,
 	}
+}
+
+func (p *Proxy) handleNotMatch() {
+
 }
